@@ -2,28 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>English Grammar Quiz</title>
+  <title>Ms Peixin's Happy Hour</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 30px; background: #f4f7f9; }
-    .container { max-width: 640px; margin: auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-    h1 { color: #2f855a; margin-top: 0; }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 0; background: #f4f7f9; }
+    .header { 
+      background: linear-gradient(135deg, #38b2ac, #3182ce);
+      color: #fff; 
+      padding: 40px 20px; 
+      border-bottom-left-radius: 50% 15%; 
+      border-bottom-right-radius: 50% 15%; 
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .container { max-width: 640px; margin: 30px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    h2 { color: #2f855a; margin-top: 0; }
     #question { font-size: 20px; margin: 18px 0; }
-    .options button { display: inline-block; width: calc(50% - 12px); margin: 6px; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e0; background: #f7fafc; cursor: pointer; font-size: 15px; }
+    .options button { display: block; width: 100%; margin: 6px 0; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e0; background: #f7fafc; cursor: pointer; font-size: 15px; }
     .options button:disabled { opacity: 0.6; cursor: default; }
+    #progress { margin: 12px 0; font-weight: bold; }
+    #timer { font-size: 18px; color: #e53e3e; margin: 8px 0; }
     #controls { margin-top: 16px; }
     .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; background: #2f855a; color: #fff; font-size: 15px; }
     .btn:disabled { opacity: 0.6; cursor: default; }
     #result { margin-top: 14px; font-weight: 600; min-height: 24px; }
-    @media (max-width:480px) {
-      .options button { width: 100%; }
-    }
+    img { max-width: 100%; margin: 10px 0; border-radius: 8px; }
   </style>
 </head>
 <body>
+  <div class="header">
+    <h1>🌟 Ms Peixin's Happy Hour 🌟</h1>
+  </div>
+
   <div class="container" role="main">
-    <h1>English Grammar Quiz</h1>
+    <h2>English Grammar Quiz</h2>
+    <div id="progress"></div>
+    <div id="timer"></div>
     <p id="question"></p>
+    <img id="qImage" style="display:none;" />
     <div class="options" id="options"></div>
     <div id="result" aria-live="polite"></div>
     <div id="controls">
@@ -33,31 +53,65 @@
   </div>
 
   <script>
-    const quiz = [
-      { question: "Choose the correct sentence:", options: ["She go to school every day.", "She goes to school every day.", "She going to school every day."], answer: 1 },
-      { question: "Which is correct?", options: ["They has a big house.", "They have a big house.", "They having a big house."], answer: 1 },
-      { question: "Fill in the blank: He ___ playing football now.", options: ["is", "are", "am"], answer: 0 },
-      { question: "Choose the correct past tense:", options: ["I eat lunch yesterday.", "I ate lunch yesterday.", "I eaten lunch yesterday."], answer: 1 }
+    const quizBank = [
+      { q: "Choose the correct sentence:", o: ["She go to school every day.", "She goes to school every day.", "She going to school every day."], a: 1 },
+      { q: "Which is correct?", o: ["They has a big house.", "They have a big house.", "They having a big house."], a: 1 },
+      { q: "Fill in the blank: He ___ playing football now.", o: ["is", "are", "am"], a: 0, img: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Soccer_player_kicking_ball.jpg" },
+      { q: "Choose the correct past tense:", o: ["I eat lunch yesterday.", "I ate lunch yesterday.", "I eaten lunch yesterday."], a: 1, img: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Food_Buffet.jpg" },
+      { q: "Which is the plural form?", o: ["Childs", "Children", "Childes"], a: 1 },
+      { q: "Correct sentence:", o: ["She don’t like apples.", "She doesn’t like apples.", "She not like apples."], a: 1, img: "https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" }
     ];
 
+    let quiz = [];
     let current = 0;
     let score = 0;
     let answered = false;
+    let timer;
+    let timeLeft = 10;
 
     const questionEl = document.getElementById('question');
     const optionsEl = document.getElementById('options');
     const resultEl = document.getElementById('result');
+    const progressEl = document.getElementById('progress');
+    const timerEl = document.getElementById('timer');
     const nextBtn = document.getElementById('nextBtn');
     const restartBtn = document.getElementById('restartBtn');
+    const qImage = document.getElementById('qImage');
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+      quiz = shuffle(quizBank).slice(0, 5);
+      current = 0;
+      score = 0;
+      nextBtn.style.display = 'inline-block';
+      nextBtn.disabled = true;
+      restartBtn.style.display = 'none';
+      loadQuestion();
+    }
 
     function loadQuestion() {
       answered = false;
       nextBtn.disabled = true;
       resultEl.textContent = '';
+      timeLeft = 10;
+      timerEl.textContent = `⏳ Time left: ${timeLeft}s`;
+      clearInterval(timer);
+      timer = setInterval(updateTimer, 1000);
+
       const q = quiz[current];
-      questionEl.textContent = q.question;
+      progressEl.textContent = `Question ${current+1} of ${quiz.length}`;
+      questionEl.textContent = q.q;
+      if (q.img) {
+        qImage.src = q.img;
+        qImage.style.display = "block";
+      } else {
+        qImage.style.display = "none";
+      }
       optionsEl.innerHTML = '';
-      q.options.forEach((opt, i) => {
+      q.o.forEach((opt, i) => {
         const b = document.createElement('button');
         b.type = 'button';
         b.textContent = opt;
@@ -66,18 +120,29 @@
       });
     }
 
+    function updateTimer() {
+      timeLeft--;
+      timerEl.textContent = `⏳ Time left: ${timeLeft}s`;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        handleAnswer(-1);
+      }
+    }
+
     function handleAnswer(selected) {
       if (answered) return;
       answered = true;
-      // disable option buttons
-      optionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
-      const correctIndex = quiz[current].answer;
+      clearInterval(timer);
+      const correctIndex = quiz[current].a;
       if (selected === correctIndex) {
         resultEl.textContent = '✅ Correct!';
         score++;
+      } else if (selected === -1) {
+        resultEl.textContent = '⌛ Time’s up! Correct: ' + quiz[current].o[correctIndex];
       } else {
-        resultEl.textContent = '❌ Wrong! Correct: ' + quiz[current].options[correctIndex];
+        resultEl.textContent = '❌ Wrong! Correct: ' + quiz[current].o[correctIndex];
       }
+      optionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
       nextBtn.disabled = false;
     }
 
@@ -92,23 +157,24 @@
 
     function showResult() {
       questionEl.textContent = 'Quiz Finished!';
+      qImage.style.display = "none";
       optionsEl.innerHTML = '';
-      resultEl.textContent = '🎉 Your score: ' + score + ' / ' + quiz.length;
+      let message = "";
+      if (score === quiz.length) message = "🌟 Excellent!";
+      else if (score >= quiz.length - 1) message = "👍 Great Job!";
+      else message = "💡 Keep practicing!";
+      resultEl.textContent = `🎉 Your score: ${score} / ${quiz.length} — ${message}`;
+      timerEl.textContent = '';
       nextBtn.style.display = 'none';
       restartBtn.style.display = 'inline-block';
     }
 
     function restartQuiz() {
-      current = 0;
-      score = 0;
-      nextBtn.style.display = 'inline-block';
-      nextBtn.disabled = true;
-      restartBtn.style.display = 'none';
-      loadQuestion();
+      clearInterval(timer);
+      startQuiz();
     }
 
-    // start
-    loadQuestion();
+    startQuiz();
   </script>
 </body>
 </html>
