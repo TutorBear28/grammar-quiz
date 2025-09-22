@@ -2,25 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ms Peixin's Happy Hour</title>
+  <title>English Grammar Quiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 0; background: #f4f7f9; }
-    .header { 
-      background: linear-gradient(135deg, #38b2ac, #3182ce);
-      color: #fff; 
-      padding: 40px 20px; 
-      border-bottom-left-radius: 50% 15%; 
-      border-bottom-right-radius: 50% 15%; 
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 36px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    .container { max-width: 640px; margin: 30px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-    h2 { color: #2f855a; margin-top: 0; }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 30px; background: #f4f7f9; }
+    .container { max-width: 640px; margin: auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    h1 { color: #2f855a; margin-top: 0; }
     #question { font-size: 20px; margin: 18px 0; }
     .options button { display: block; width: 100%; margin: 6px 0; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e0; background: #f7fafc; cursor: pointer; font-size: 15px; }
     .options button:disabled { opacity: 0.6; cursor: default; }
@@ -34,12 +21,8 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>🌟 Ms Peixin's Happy Hour 🌟</h1>
-  </div>
-
   <div class="container" role="main">
-    <h2>English Grammar Quiz</h2>
+    <h1>English Grammar Quiz</h1>
     <div id="progress"></div>
     <div id="timer"></div>
     <p id="question"></p>
@@ -83,7 +66,7 @@
     }
 
     function startQuiz() {
-      quiz = shuffle(quizBank).slice(0, 5);
+      quiz = shuffle(quizBank).slice(0, 5); // 随机抽 5 题
       current = 0;
       score = 0;
       nextBtn.style.display = 'inline-block';
@@ -125,7 +108,7 @@
       timerEl.textContent = `⏳ Time left: ${timeLeft}s`;
       if (timeLeft <= 0) {
         clearInterval(timer);
-        handleAnswer(-1);
+        handleAnswer(-1); // 超时自动算错
       }
     }
 
@@ -174,6 +157,7 @@
       startQuiz();
     }
 
+    // start
     startQuiz();
   </script>
 </body>
